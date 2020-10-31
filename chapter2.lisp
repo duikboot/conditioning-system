@@ -6,7 +6,7 @@
 (defvar *csgo-launched-p* nil)
 (defvar *hooks* nil)
 
-(defvar *phonebook* 
+(defvar *phonebook*
   '((:mom :parent)
     (:dad :parent)
     (:alice :classmate :csgo :homework)
@@ -26,12 +26,11 @@
       (funcall hook person))
     (call-person person)))
 
+(defun ensure-csgo-launched (person)
+  (when (member :csgo person)
+    (unless *csgo-launched-p*
+      (format t ";; Launging Counter Strike for ~A" (first person))
+      (setf *csgo-launched-p* t))))
 
-(let ((*hooks*
-        (list
-          (lambda (person)
-            (when (member :csgo person)
-              (unless *csgo-launched-p*
-                (format t ";; Launging Counter Strike for ~A" (first person))
-                (setf *csgo-launched-p* t)))))))
+(let ((*hooks* (list #'ensure-csgo-launched)))
   (call-people))
