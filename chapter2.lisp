@@ -22,9 +22,10 @@
 (defun call-people ()
   (setf *csgo-launched-p* nil)
   (dolist (person *phonebook*)
-    (dolist (hook *hooks*)
-      (funcall hook person))
-    (call-person person)))
+    (catch :do-not-call
+      (dolist (hook *hooks*)
+        (funcall hook person))
+      (call-person person))))
 
 (defun ensure-csgo-launched (person)
   (when (member :csgo person)
@@ -32,5 +33,40 @@
       (format t ";; Launging Counter Strike for ~A" (first person))
       (setf *csgo-launched-p* t))))
 
-(let ((*hooks* (list #'ensure-csgo-launched)))
+(defun skip-non-csgo-people (person)
+  (unless (member :csgo person)
+    (format t ";; Nope, not calling ~A.~%" (first person))
+    (throw :do-not-call nil)))
+
+(defun maybe-call-parent (person)
+  (when (member :parent person)
+    (when (zerop (random 2))
+      (format t ";; Nah, not calling ~A, this time.~%" (first person))
+      (throw :do-not-call nil))))
+
+(defun skip-non-parents (person)
+  (unless (member :parent person)
+    (throw :do-not-call nil)))
+
+(defun skip-ex (person)
+  (when (member :ex person)
+    (format t ";; Nah, not calling ex: ~A.~%" (first person))
+    (throw :do-not-call nil)))
+
+(defun wish-happy-holidays (person)
+  (format t ";; Wish ~A happy holidays.~%" (first person)))
+
+;;; Only csgo
+(let ((*hooks* (list #'ensure-csgo-launched
+                     #'skip-non-csgo-people)))
+  (call-people))
+
+;;; Parents
+(let ((*hooks* (list #'maybe-call-parent
+                     #'skip-non-parents)))
+  (call-people))
+
+;;; Holiday wishes
+(let ((*hooks* (list #'skip-ex
+                     #'wish-happy-holidays)))
   (call-people))
