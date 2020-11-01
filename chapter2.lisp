@@ -28,8 +28,7 @@
         (funcall hook person))
       (call-person person)
       (dolist (hook *after-hooks*)
-        (funcall hook person))
-      (call-person person))))
+        (funcall hook person)))))
 
 (defun ensure-csgo-launched (person)
   (when (member :csgo person)
