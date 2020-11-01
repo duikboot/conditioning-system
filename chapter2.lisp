@@ -78,3 +78,14 @@
 (let ((*before-hooks* (list #'skip-ex
                             #'wish-happy-holidays)))
   (call-people))
+
+;;; Call girlfriend again
+(let ((*after-hooks* (list #'call-girlfriend-again)))
+  (call-people))
+
+
+;;; Before and after hooks
+(let ((*before-hooks* (list #'ensure-csgo-launched
+                            #'skip-non-csgo-people))
+      (*after-hooks* (list #'call-girlfriend-again)))
+  (call-people))
