@@ -4,7 +4,8 @@
 (in-package :chapter-2)
 
 (defvar *csgo-launched-p* nil)
-(defvar *hooks* nil)
+(defvar *before-hooks* nil)
+(defvar *after-hooks* nil)
 
 (defvar *phonebook*
   '((:mom :parent)
@@ -23,7 +24,10 @@
   (setf *csgo-launched-p* nil)
   (dolist (person *phonebook*)
     (catch :do-not-call
-      (dolist (hook *hooks*)
+      (dolist (hook *before-hooks*)
+        (funcall hook person))
+      (call-person person)
+      (dolist (hook *after-hooks*)
         (funcall hook person))
       (call-person person))))
 
@@ -56,17 +60,22 @@
 (defun wish-happy-holidays (person)
   (format t ";; Wish ~A happy holidays.~%" (first person)))
 
+(defun call-girlfriend-again (person)
+  (when (member :girlfriend person)
+    (format t ";; Calling girlfriend ~A again.~%" (first person))
+    (call-person person)))
+
 ;;; Only csgo
-(let ((*hooks* (list #'ensure-csgo-launched
-                     #'skip-non-csgo-people)))
+(let ((*before-hooks* (list #'ensure-csgo-launched
+                            #'skip-non-csgo-people)))
   (call-people))
 
 ;;; Parents
-(let ((*hooks* (list #'maybe-call-parent
-                     #'skip-non-parents)))
+(let ((*before-hooks* (list #'maybe-call-parent
+                            #'skip-non-parents)))
   (call-people))
 
 ;;; Holiday wishes
-(let ((*hooks* (list #'skip-ex
-                     #'wish-happy-holidays)))
+(let ((*before-hooks* (list #'skip-ex
+                            #'wish-happy-holidays)))
   (call-people))
