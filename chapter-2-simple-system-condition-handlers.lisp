@@ -24,4 +24,15 @@
 (defun call-people ()
   (setf *csgo-launched-p* nil)
   (dolist (person *phonebook*)
+    (signal 'before-call :person person)
     (call-person person)))
+
+(handler-bind
+    ((before-call
+       (lambda (condition)
+         (let ((person (person condition)))
+           (when (member :csgo person)
+             (unless *csgo-launched-p*
+               (format t ";; Launching Counter String for ~A.~%" (first person))
+               (setf *csgo-launched-p* t)))))))
+  (call-people))
