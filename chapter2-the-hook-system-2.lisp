@@ -1,11 +1,10 @@
 (in-package :cl-user)
-(defpackage :chapter-2
+(defpackage :chapter-2-the-hook-system-2
   (:use :cl))
-(in-package :chapter-2)
+(in-package :chapter-2-the-hook-system-2)
 
 (defvar *csgo-launched-p* nil)
-(defvar *before-hooks* nil)
-(defvar *after-hooks* nil)
+(defvar *hooks* '())
 
 (defvar *phonebook*
   '((:mom :parent)
@@ -17,6 +16,13 @@
     (:eric :classmate :homework)
     (:dentist)))
 
+
+(defun call-hooks (kind &rest arguments)
+  (dolist (hook *hooks*)
+    (destructuring-bind (hook-kind hook-function) hook
+      (when (eq kind hook-kind)
+        (apply hook-function arguments)))))
+
 (defun call-person (person)
   (format t ";; Calling ~A.~%" (first person)))
 
@@ -24,16 +30,14 @@
   (setf *csgo-launched-p* nil)
   (dolist (person *phonebook*)
     (catch :do-not-call
-      (dolist (hook *before-hooks*)
-        (funcall hook person))
+      (call-hooks 'before-call person)
       (call-person person)
-      (dolist (hook *after-hooks*)
-        (funcall hook person)))))
+      (call-hooks 'after-call person))))
 
 (defun ensure-csgo-launched (person)
   (when (member :csgo person)
     (unless *csgo-launched-p*
-      (format t ";; Launging Counter Strike for ~A" (first person))
+      (format t ";; Launging Counter Strike for ~A~%" (first person))
       (setf *csgo-launched-p* t))))
 
 (defun skip-non-csgo-people (person)
@@ -64,28 +68,19 @@
     (format t ";; Calling girlfriend ~A again.~%" (first person))
     (call-person person)))
 
-;;; Only csgo
-(let ((*before-hooks* (list #'ensure-csgo-launched
-                            #'skip-non-csgo-people)))
+(let ((*hooks* `((before-call ,#'ensure-csgo-launched)
+                 (after-call ,#'call-girlfriend-again))))
   (call-people))
 
-;;; Parents
-(let ((*before-hooks* (list #'maybe-call-parent
-                            #'skip-non-parents)))
+(let ((*hooks* `((before-call ,#'skip-ex)
+                 (before-call ,#'ensure-csgo-launched)
+                 (before-call ,#'wish-happy-holidays)
+                 (after-call ,#'call-girlfriend-again))))
   (call-people))
 
-;;; Holiday wishes
-(let ((*before-hooks* (list #'skip-ex
-                            #'wish-happy-holidays)))
-  (call-people))
-
-;;; Call girlfriend again
-(let ((*after-hooks* (list #'call-girlfriend-again)))
-  (call-people))
-
-
-;;; Before and after hooks
-(let ((*before-hooks* (list #'ensure-csgo-launched
-                            #'skip-non-csgo-people))
-      (*after-hooks* (list #'call-girlfriend-again)))
+;;; Or:
+(let ((*hooks* '((before-call skip-ex)
+                 (before-call ensure-csgo-launched)
+                 (before-call wish-happy-holidays)
+                 (after-call call-girlfriend-again))))
   (call-people))
