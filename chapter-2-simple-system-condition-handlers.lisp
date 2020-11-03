@@ -54,14 +54,15 @@
         (format t ";; Nah, not calling ~A, this time.~%" (first person))
         (throw :do-not-call nil)))))
 
-(handler-bind ((before-call #'ensure-csgo-launched)
-               (before-call #'skip-non-csgo-people))
-  (call-people))
-
 (defun skip-non-parents (condition)
   (let ((person (person condition)))
     (unless (member :parent person)
       (throw :do-not-call nil))))
+
+
+(handler-bind ((before-call #'ensure-csgo-launched)
+               (before-call #'skip-non-csgo-people))
+  (call-people))
 
 (handler-bind ((before-call #'maybe-call-parent)
                (before-call #'skip-non-parents))
